@@ -1,0 +1,6 @@
+{
+  "name": "OrbitPath",
+  "description": "Intelligent routing layer and smart contract engine for optimal Stellar Path Payments and Soroban execution.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

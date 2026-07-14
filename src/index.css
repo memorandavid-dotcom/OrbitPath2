@@ -1,0 +1,32 @@
+@import "tailwindcss";
+
+:root {
+  --bg-primary: #020617;
+  --surface-card: #090d16;
+  --text-main: #f8fafc;
+  --text-brand: #94a3b8;
+  --text-secondary: #cbd5e1;
+  --border-color: #1e293b;
+  --bg-darker: #020617;
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+html, body {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  background-color: var(--bg-primary);
+  color: var(--text-main);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+html::-webkit-scrollbar, body::-webkit-scrollbar {
+  display: none;
+}
