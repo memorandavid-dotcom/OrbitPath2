@@ -280,40 +280,66 @@ export default function App() {
 
   // === NATIVE NOTIFICATION INFRASTRUCTURE ===
   const [showNotifications, setShowNotifications] = useState<boolean>(false);
-  const [notifications, setNotifications] = useState([
-    {
-      id: 'notif_1',
-      title: "Payment Received",
-      description: "$250.00 USDC received from Alice Vance",
-      time: "Just now",
-      read: false,
-      type: "payout"
-    },
-    {
-      id: 'notif_2',
-      title: "Bill Due Notice",
-      description: "Metro Power & Light bill of $45.00 USDC due in 5 days",
-      time: "2 hours ago",
-      read: false,
-      type: "bill"
-    },
-    {
-      id: 'notif_3',
-      title: "Security Login Alert",
-      description: "New login detected from Chrome on Linux container",
-      time: "3 hours ago",
-      read: true,
-      type: "security"
-    },
-    {
-      id: 'notif_4',
-      title: "System Alert",
-      description: "OrbitPath decentralized routing engine synchronized with Stellar mainnet",
-      time: "1 day ago",
-      read: true,
-      type: "system"
+  const [notifications, setNotifications] = useState<Array<{
+    id: string;
+    title: string;
+    description: string;
+    time: string;
+    read: boolean;
+    type: string;
+  }>>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('orbit_notifications');
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch {
+          // fallback
+        }
+      }
     }
-  ]);
+    return [
+      {
+        id: 'notif_1',
+        title: "Payment Received",
+        description: "$250.00 USDC received from Alice Vance",
+        time: "Just now",
+        read: false,
+        type: "payout"
+      },
+      {
+        id: 'notif_2',
+        title: "Bill Due Notice",
+        description: "Metro Power & Light bill of $45.00 USDC due in 5 days",
+        time: "2 hours ago",
+        read: false,
+        type: "bill"
+      },
+      {
+        id: 'notif_3',
+        title: "Security Login Alert",
+        description: "New login detected from Chrome on Linux container",
+        time: "3 hours ago",
+        read: true,
+        type: "security"
+      },
+      {
+        id: 'notif_4',
+        title: "System Alert",
+        description: "OrbitPath decentralized routing engine synchronized with Stellar mainnet",
+        time: "1 day ago",
+        read: true,
+        type: "system"
+      }
+    ];
+  });
+
+  // Automatically serialize and save notifications to localStorage on change
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('orbit_notifications', JSON.stringify(notifications));
+    }
+  }, [notifications]);
 
   // === LOCAL VIEW LEDGER CLEAR STATE ===
   const [clearedTxIds, setClearedTxIds] = useState<string[]>([]);
@@ -352,10 +378,45 @@ export default function App() {
 
   // Secure profile panel & saved QR state
   const [isProfileOpen, setIsProfileOpen] = useState<boolean>(false);
-  const [uploadedQR, setUploadedQR] = useState<string | null>(null);
-  const [savedQRs, setSavedQRs] = useState<Array<{ id: number; name: string; platform: string; date: string }>>([
-    { id: 1, name: "My GCash QR", platform: "GCash", date: "2026-04-12" }
-  ]);
+  const [uploadedQR, setUploadedQR] = useState<string | null>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('orbit_uploaded_qr') || null;
+    }
+    return null;
+  });
+  const [savedQRs, setSavedQRs] = useState<Array<{ id: number; name: string; platform: string; date: string }>>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('orbit_saved_qrs');
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch {
+          // fallback
+        }
+      }
+    }
+    return [
+      { id: 1, name: "My GCash QR", platform: "GCash", date: "2026-04-12" }
+    ];
+  });
+
+  // Automatically serialize and save savedQRs to localStorage on change
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('orbit_saved_qrs', JSON.stringify(savedQRs));
+    }
+  }, [savedQRs]);
+
+  // Automatically serialize and save uploadedQR to localStorage on change
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      if (uploadedQR) {
+        localStorage.setItem('orbit_uploaded_qr', uploadedQR);
+      } else {
+        localStorage.removeItem('orbit_uploaded_qr');
+      }
+    }
+  }, [uploadedQR]);
 
   // Auto-logout countdown timer
   useEffect(() => {
@@ -446,20 +507,64 @@ export default function App() {
   // Dynamic QR Receiving States
   const [qrMode, setQrMode] = useState<'variable' | 'specific'>('specific');
 
-  // CRM dynamic collections
+  // CRM dynamic collections with offline local storage cache support
   const [billingProfiles, setBillingProfiles] = useState<Array<{
     id: string;
     provider: string;
     referenceId: string;
     amount: string;
     routingDetails: string;
-  }>>([]);
+  }>>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('orbit_billing_profiles');
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch {
+          // fallback
+        }
+      }
+    }
+    return [
+      { id: 'bill_1', provider: 'Metro Power & Light', referenceId: '9823-1123-4560', amount: '45', routingDetails: 'Stellar SEP-31 Payout Router' }
+    ];
+  });
+
   const [linkedAccounts, setLinkedAccounts] = useState<Array<{
     id: string;
     name: string;
     type: string;
     details: string;
-  }>>([]);
+  }>>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('orbit_linked_accounts');
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch {
+          // fallback
+        }
+      }
+    }
+    return [
+      { id: 'lnk_1', name: 'GCash Wallet', type: 'Fintech Wallet', details: '+63 917 •••• 4567' },
+      { id: 'lnk_2', name: 'BDO Unibank', type: 'Savings Account', details: 'Acct •••• 8821' },
+      { id: 'lnk_3', name: 'InstaPay network', type: 'Settlement Node', details: 'Auto Routed' }
+    ];
+  });
+
+  // Automatically serialize and save CRM profiles to localStorage on change
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('orbit_billing_profiles', JSON.stringify(billingProfiles));
+    }
+  }, [billingProfiles]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('orbit_linked_accounts', JSON.stringify(linkedAccounts));
+    }
+  }, [linkedAccounts]);
 
   // CSS variables manager for themes
   useEffect(() => {
@@ -474,7 +579,7 @@ export default function App() {
     root.style.setProperty('--bg-darker', '#020617'); // slate-950
   }, [theme]);
 
-  // Fetch billing and connected account data from server
+  // Fetch billing and connected account data from server, with smart automatic re-synchronization
   const fetchProfileData = async () => {
     if (!authToken) return;
     try {
@@ -483,8 +588,39 @@ export default function App() {
       });
       const data = await res.json();
       if (data.success) {
-        setBillingProfiles(data.billingProfiles || []);
-        setLinkedAccounts(data.linkedAccounts || []);
+        const serverBills = data.billingProfiles || [];
+        const serverAccounts = data.linkedAccounts || [];
+
+        // If the serverless function restarted (loss of memory state), proactively restore offline local data
+        if (serverBills.length === 0 && billingProfiles.length > 0) {
+          for (const bill of billingProfiles) {
+            await fetch('/api/billing-profiles/save', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authToken}`
+              },
+              body: JSON.stringify(bill)
+            });
+          }
+        } else if (serverBills.length > 0) {
+          setBillingProfiles(serverBills);
+        }
+
+        if (serverAccounts.length === 0 && linkedAccounts.length > 0) {
+          for (const acc of linkedAccounts) {
+            await fetch('/api/linked-accounts/add', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authToken}`
+              },
+              body: JSON.stringify({ name: acc.name, type: acc.type, details: acc.details })
+            });
+          }
+        } else if (serverAccounts.length > 0) {
+          setLinkedAccounts(serverAccounts);
+        }
       }
     } catch (err) {
       console.warn("Error fetching CRM profiles", err);
@@ -669,38 +805,57 @@ export default function App() {
     timestamp: string;
     hash: string;
     memo: string;
-  }>>([
-    {
-      id: 'tx_hist_1',
-      recipient: 'Maria Clara Santos',
-      amountSent: 50.00,
-      amountReceived: 2906.00,
-      target: 'PHP',
-      timestamp: 'Today, 10:15 AM',
-      hash: 'op_sec_7a1b9c3f2d5e8f4',
-      memo: 'Orbit_Remit_55214'
-    },
-    {
-      id: 'tx_hist_2',
-      recipient: 'Jean-Pierre Dupont',
-      amountSent: 150.00,
-      amountReceived: 137.25,
-      target: 'EUR',
-      timestamp: 'Yesterday, 04:30 PM',
-      hash: 'op_sec_9c8b7a6f5e4d3c2',
-      memo: 'Orbit_Remit_12984'
-    },
-    {
-      id: 'tx_hist_3',
-      recipient: 'Chinedu Okafor',
-      amountSent: 200.00,
-      amountReceived: 299000.00,
-      target: 'NGN',
-      timestamp: 'July 5, 2026, 09:12 AM',
-      hash: 'op_sec_3d8f7b2c5a1e9f4',
-      memo: 'Orbit_Remit_88301'
+  }>>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('orbit_transaction_history');
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch {
+          // fallback
+        }
+      }
     }
-  ]);
+    return [
+      {
+        id: 'tx_hist_1',
+        recipient: 'Maria Clara Santos',
+        amountSent: 50.00,
+        amountReceived: 2906.00,
+        target: 'PHP',
+        timestamp: 'Today, 10:15 AM',
+        hash: 'op_sec_7a1b9c3f2d5e8f4',
+        memo: 'Orbit_Remit_55214'
+      },
+      {
+        id: 'tx_hist_2',
+        recipient: 'Jean-Pierre Dupont',
+        amountSent: 150.00,
+        amountReceived: 137.25,
+        target: 'EUR',
+        timestamp: 'Yesterday, 04:30 PM',
+        hash: 'op_sec_9c8b7a6f5e4d3c2',
+        memo: 'Orbit_Remit_12984'
+      },
+      {
+        id: 'tx_hist_3',
+        recipient: 'Chinedu Okafor',
+        amountSent: 200.00,
+        amountReceived: 299000.00,
+        target: 'NGN',
+        timestamp: 'July 5, 2026, 09:12 AM',
+        hash: 'op_sec_3d8f7b2c5a1e9f4',
+        memo: 'Orbit_Remit_88301'
+      }
+    ];
+  });
+
+  // Automatically serialize and save transaction history to localStorage on change
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('orbit_transaction_history', JSON.stringify(history));
+    }
+  }, [history]);
 
   // Toast Helper
   const showToast = (msg: string) => {

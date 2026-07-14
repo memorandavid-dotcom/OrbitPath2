@@ -70,6 +70,12 @@ By programmatically scanning multi-asset liquidity paths and automating swap set
 ### 6. End-to-End Session Security Countdown
 * **Secure Countdown Indicator:** Serves real-time visibility into the current 15-minute secure session token window with precise countdowns and dynamic status feedback.
 
+### 7. Stateful Offline-First & Resilient Vercel Architecture
+* **Direct Local Storage Initialization:** Main React states (`savedQRs`, `uploadedQR`, `notifications`, and `history`/`transactionHistory`) initialize directly from the client browser's `window.localStorage` inside custom state-initialization functions, completely guarded with SSR compatibility checks (`typeof window !== 'undefined'`) to prevent Vercel build-time errors.
+* **Automated Serialization Listeners:** Targeted reactive `useEffect` hooks automatically serialize, synchronize, and commit state updates to browser storage as soon as any change occurs.
+* **Smart Back-Sync Re-Synchronization:** Since Vercel serverless containers are stateless and destroy backend in-memory user-specific arrays upon container teardowns, the frontend's fetching system is reinforced with a back-sync mechanism: on mount, if the serverless backend has restarted (returning empty profiles), OrbitPath automatically uploads and restores the client's cached billing profiles and connected payout targets back into the server memory.
+* **Hardcoded Fallback Constants:** Immutable default fallback configurations, preseeded developer profiles, and baseline simulation configurations are hardcoded securely in-code as arrays to serve as instant structural skeletons.
+
 ---
 
 ## 💻 Tech Stack & Setup
